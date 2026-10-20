@@ -1,11 +1,12 @@
 // Declarative pipeline. Runs on the Jenkins server (Ubuntu) that polls this GitHub repo.
-// Needs on the agent: Node.js 22, Git, Chrome/Electron libraries and xvfb (see docs/JENKINS_SETUP.md).
+// Needs on the agent: Node.js 22, Git, and the browser libraries from docs/JENKINS_SETUP.md
+// (xvfb + Cypress libraries, and Playwright's system libraries).
 pipeline {
   agent any
 
   options {
     timestamps()
-    timeout(time: 20, unit: 'MINUTES')
+    timeout(time: 30, unit: 'MINUTES')
     disableConcurrentBuilds()
     buildDiscarder(logRotator(numToKeepStr: '15'))
   }
@@ -17,7 +18,7 @@ pipeline {
   }
 
   parameters {
-    choice(name: 'SUITE', choices: ['all', 'api', 'ui'], description: 'Which tests to run')
+    choice(name: 'SUITE', choices: ['all', 'newman', 'cypress', 'playwright'], description: 'Which tests to run')
   }
 
   environment {
@@ -42,7 +43,7 @@ pipeline {
     stage('Tests') {
       parallel {
         stage('API tests (Newman)') {
-          when { expression { params.SUITE == 'all' || params.SUITE == 'api' } }
+          when { expression { params.SUITE == 'all' || params.SUITE == 'newman' } }
           steps {
             sh 'npm run test:api'
           }
@@ -54,13 +55,27 @@ pipeline {
         }
 
         stage('UI tests (Cypress)') {
-          when { expression { params.SUITE == 'all' || params.SUITE == 'ui' } }
+          when { expression { params.SUITE == 'all' || params.SUITE == 'cypress' } }
           steps {
             sh 'npm run test:ui'
           }
           post {
             always {
               junit allowEmptyResults: true, testResults: 'reports/ui/*.xml'
+            }
+          }
+        }
+
+        stage('API + UI tests (Playwright)') {
+          when { expression { params.SUITE == 'all' || params.SUITE == 'playwright' } }
+          steps {
+            // Downloads Chromium for the jenkins user the first time (cached afterwards).
+            sh 'npx playwright install chromium'
+            sh 'npm run test:pw'
+          }
+          post {
+            always {
+              junit allowEmptyResults: true, testResults: 'reports/playwright/junit.xml'
             }
           }
         }
@@ -71,14 +86,22 @@ pipeline {
   post {
     always {
       publishHTML(target: [
-        reportName: 'API report',
+        reportName: 'API report (Newman)',
         reportDir: 'reports/api',
         reportFiles: 'index.html',
         keepAll: true,
         alwaysLinkToLastBuild: true,
         allowMissing: true
       ])
-      // Allure report: needs the Allure Jenkins plugin and an Allure Commandline tool named 'allure'.
+      publishHTML(target: [
+        reportName: 'Playwright report',
+        reportDir: 'reports/playwright/html',
+        reportFiles: 'index.html',
+        keepAll: true,
+        alwaysLinkToLastBuild: true,
+        allowMissing: true
+      ])
+      // Allure report: needs the Allure Jenkins plugin and an Allure tool named 'allure'.
       // If they are not set up yet, the build still finishes and the console says why.
       script {
         try {

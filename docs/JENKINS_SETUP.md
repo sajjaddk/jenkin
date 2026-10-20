@@ -40,6 +40,17 @@ sudo apt install -y xvfb libgtk-3-0 libgbm1 libnss3 libxss1 libxtst6 xauth libno
 ```
 Optional: install Google Chrome if you want to run Cypress in Chrome instead of Electron.
 
+### 4b. System libraries for Playwright
+Playwright downloads its own Chromium during the build, but the operating-system libraries it needs must be installed once with administrator rights. Run this in the project folder on any computer with the repo (or on the server after cloning it):
+```bash
+git clone https://github.com/sajjaddk/jenkin.git ~/jenkin-setup
+cd ~/jenkin-setup
+npm ci
+sudo env "PATH=$PATH" npx playwright install-deps chromium
+cd ~ && rm -rf ~/jenkin-setup
+```
+The first pipeline run then downloads the browser itself (about 150 MB, stored in `/var/lib/jenkins/.cache/ms-playwright`).
+
 ## 5. Firewall (home network only)
 Replace `192.168.0.0/16` with your own network range if different.
 ```bash
@@ -86,7 +97,7 @@ After the first run, the `pollSCM` trigger in the `Jenkinsfile` is active. Jenki
 ## 9. Check it works
 - The build page shows the **stage view** (Install, Lint, Tests).
 - **Test Result** shows the Newman and Cypress results.
-- **API report** (left menu) shows the HTML report.
+- **API report (Newman)** and **Playwright report** (left menu) show the HTML reports.
 - **Allure Report** (left menu) shows the combined API and UI report with features, severity, steps and trends.
 - **Build Artifacts** has the reports and any failure screenshots.
 
@@ -101,6 +112,8 @@ Recruiters can't open your home Jenkins, so save proof in the repo:
 |---|---|
 | `npm: command not found` in a build | Node isn't installed for the `jenkins` user: check step 4, then restart Jenkins (`sudo systemctl restart jenkins`) |
 | Cypress: "Xvfb" or shared library errors | Install the libraries in step 4 |
+| Playwright: "Host system is missing dependencies" | Run the command in step 4b (needs `sudo`) |
+| Playwright browser missing | The Playwright stage runs `npx playwright install chromium` itself. If it fails, check the server's internet access and free disk space |
 | Cypress binary missing | `sudo -u jenkins npx cypress install` from any folder, or re-run the build (the first run downloads it) |
 | HTML report shows blank or unstyled | Jenkins blocks scripts in reports by default. Easiest: open the report from **Build Artifacts**. Or relax the policy in **Manage Jenkins → Script Console** (resets when Jenkins restarts): `System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "sandbox allow-scripts; default-src 'self'; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' data:; font-src 'self' https: data:")` |
 | "Allure report skipped" in the console | The Allure plugin or the tool named `allure` is missing: check steps 7 and 7b |

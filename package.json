@@ -5,17 +5,24 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "lint": "eslint cypress cypress.config.js eslint.config.js",
+    "lint": "eslint cypress playwright cypress.config.js playwright.config.js eslint.config.js",
     "test:api": "newman run api-tests/restful-booker.postman_collection.json -e api-tests/restful-booker.postman_environment.json -r cli,junit,htmlextra,allure --reporter-allure-resultsDir reports/allure-results --reporter-junit-export reports/api/newman-junit.xml --reporter-htmlextra-export reports/api/index.html --reporter-htmlextra-title \"Restful-Booker API tests\"",
     "test:ui": "cypress run",
     "cy:open": "cypress open",
     "report": "allure generate reports/allure-results --clean -o reports/allure-report",
     "report:open": "allure open reports/allure-report",
-    "test": "npm run test:api && npm run test:ui"
+    "test:pw": "playwright test",
+    "test:pw:api": "playwright test --project=api",
+    "test:pw:e2e": "playwright test --project=e2e",
+    "pw:ui": "playwright test --ui",
+    "pw:report": "playwright show-report reports/playwright/html",
+    "test": "npm run test:api && npm run test:ui && npm run test:pw"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "allure-commandline": "^2.46.1",
     "allure-cypress": "^3.14.0",
+    "allure-playwright": "^3.14.0",
     "cypress": "^13.17.0",
     "eslint": "^9.17.0",
     "globals": "^15.14.0",

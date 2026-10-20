@@ -8,3 +8,6 @@ cypress/videos/
 .cache/
 allure-results/
 allure-report/
+playwright/.auth/
+test-results/
+playwright-report/
