@@ -6,3 +6,5 @@ reports/
 cypress/screenshots/
 cypress/videos/
 .cache/
+allure-results/
+allure-report/

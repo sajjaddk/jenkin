@@ -58,9 +58,16 @@ sudo ufw status
 ## 7. Extra plugins
 **Manage Jenkins → Plugins → Available plugins**, install:
 - **HTML Publisher** (shows the API report)
+- **Allure** (listed as *Allure Jenkins Plugin*; shows the Allure report)
 - **Workspace Cleanup** and **Timestamper**, if not already installed
 
 (Pipeline, Git and JUnit come with the suggested plugins.)
+
+## 7b. Add the Allure Commandline tool
+1. **Manage Jenkins → Tools**, scroll to **Allure Commandline** and click **Add Allure Commandline**.
+2. Name: `allure` (it must match the `Jenkinsfile`).
+3. Tick **Install automatically** and keep the default source (Maven Central). Pick the latest 2.x version.
+4. **Save.** Allure needs Java, which the server already has (step 2).
 
 ## 8. Create the pipeline job
 1. **New Item** → name `jenkins-qa-pipeline` → **Pipeline** → OK.
@@ -80,6 +87,7 @@ After the first run, the `pollSCM` trigger in the `Jenkinsfile` is active. Jenki
 - The build page shows the **stage view** (Install, Lint, Tests).
 - **Test Result** shows the Newman and Cypress results.
 - **API report** (left menu) shows the HTML report.
+- **Allure Report** (left menu) shows the combined API and UI report with features, severity, steps and trends.
 - **Build Artifacts** has the reports and any failure screenshots.
 
 ## 10. Make evidence for your portfolio
@@ -95,5 +103,6 @@ Recruiters can't open your home Jenkins, so save proof in the repo:
 | Cypress: "Xvfb" or shared library errors | Install the libraries in step 4 |
 | Cypress binary missing | `sudo -u jenkins npx cypress install` from any folder, or re-run the build (the first run downloads it) |
 | HTML report shows blank or unstyled | Jenkins blocks scripts in reports by default. Easiest: open the report from **Build Artifacts**. Or relax the policy in **Manage Jenkins → Script Console** (resets when Jenkins restarts): `System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "sandbox allow-scripts; default-src 'self'; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' data:; font-src 'self' https: data:")` |
+| "Allure report skipped" in the console | The Allure plugin or the tool named `allure` is missing: check steps 7 and 7b |
 | Tests fail only on the server | The practice sites are public and can be slow. The UI tests retry twice. Re-run before assuming a bug. |
 | Build never starts on its own | Run the job once manually so Jenkins registers the poll trigger; then check **Git Polling Log** |

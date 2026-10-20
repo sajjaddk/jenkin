@@ -1,17 +1,23 @@
+const allure = require('allure-cypress');
 const login = require('../support/pages/LoginPage');
+const inventory = require('../support/pages/InventoryPage');
 
 describe('Login', () => {
   beforeEach(() => {
+    allure.epic('SauceDemo UI');
+    allure.feature('Login');
     login.visit();
   });
 
   it('logs in with valid credentials', () => {
+    allure.severity('blocker');
     login.login('standard_user', 'secret_sauce');
     cy.url().should('include', '/inventory.html');
     cy.get('[data-test="title"]').should('have.text', 'Products');
   });
 
   it('shows an error for a wrong password', () => {
+    allure.severity('critical');
     login.login('standard_user', 'wrong');
     login.error().should('contain', 'Username and password do not match');
     cy.url().should('not.include', '/inventory');
@@ -33,13 +39,13 @@ describe('Login', () => {
   });
 
   it('cannot open the inventory without logging in', () => {
+    allure.severity('critical');
     cy.visit('/inventory.html', { failOnStatusCode: false });
     cy.url().should('not.include', '/inventory.html');
     login.error().should('contain', "You can only access '/inventory.html' when you are logged in");
   });
 
   it('logs out', () => {
-    const inventory = require('../support/pages/InventoryPage');
     login.login('standard_user', 'secret_sauce');
     inventory.logout();
     cy.url().should('eq', `${Cypress.config('baseUrl')}/`);

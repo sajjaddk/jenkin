@@ -1,3 +1,4 @@
+const allure = require('allure-cypress');
 const login = require('../support/pages/LoginPage');
 const inventory = require('../support/pages/InventoryPage');
 const checkout = require('../support/pages/CheckoutPage');
@@ -7,6 +8,8 @@ const BIKE_LIGHT = 'sauce-labs-bike-light';
 
 describe('Shopping', () => {
   beforeEach(() => {
+    allure.epic('SauceDemo UI');
+    allure.feature('Shopping');
     login.visit().login('standard_user', 'secret_sauce');
   });
 
@@ -47,11 +50,18 @@ describe('Shopping', () => {
   });
 
   it('completes a purchase end to end', () => {
-    inventory.addToCart(BACKPACK).openCart();
-    checkout.start().fillInfo({ firstName: 'Sajjad', lastName: 'Tester', postalCode: '2630' });
-    cy.get('[data-test="inventory-item-name"]').should('have.text', 'Sauce Labs Backpack');
-    checkout.finish();
-    checkout.confirmation().should('have.text', 'Thank you for your order!');
+    allure.severity('blocker');
+    allure.step('Add the backpack to the cart', () => {
+      inventory.addToCart(BACKPACK).openCart();
+    });
+    allure.step('Enter checkout information', () => {
+      checkout.start().fillInfo({ firstName: 'Sajjad', lastName: 'Tester', postalCode: '2630' });
+      cy.get('[data-test="inventory-item-name"]').should('have.text', 'Sauce Labs Backpack');
+    });
+    allure.step('Finish the order and check the confirmation', () => {
+      checkout.finish();
+      checkout.confirmation().should('have.text', 'Thank you for your order!');
+    });
   });
 
   it('requires checkout information', () => {

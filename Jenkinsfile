@@ -78,6 +78,15 @@ pipeline {
         alwaysLinkToLastBuild: true,
         allowMissing: true
       ])
+      // Allure report: needs the Allure Jenkins plugin and an Allure Commandline tool named 'allure'.
+      // If they are not set up yet, the build still finishes and the console says why.
+      script {
+        try {
+          allure includeProperties: false, jdk: '', commandline: 'allure', results: [[path: 'reports/allure-results']]
+        } catch (err) {
+          echo "Allure report skipped: ${err.message}"
+        }
+      }
       archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true
     }
     success { echo 'All selected test suites passed.' }

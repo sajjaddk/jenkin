@@ -15,7 +15,7 @@ API and UI test automation against public practice sites, run by a **Jenkins pip
                                   |                                             |
                                   +------------- JUnit XML + HTML reports ------+
                                                          |
-                                            Jenkins: Test Result, API report,
+                                            Jenkins: Test Result, API report, Allure report,
                                             archived artifacts, failure screenshots
 ```
 Jenkins is **not** exposed to the internet. It polls GitHub instead of receiving webhooks.
@@ -26,13 +26,15 @@ Jenkins is **not** exposed to the internet. It polls GitHub instead of receiving
 | API | Postman collection run with Newman | Restful-Booker | 13 requests, 37 assertions: auth, create/read/list/filter, update, partial update, forbidden update, invalid payload, delete, deleted-is-gone |
 | UI | Cypress with Page Object Model | SauceDemo | 14 tests: valid/invalid/locked-out login, required fields, protected page, logout, cart badge, sorting, full checkout, checkout validation |
 
+Reporting: JUnit (Jenkins trends), the Newman HTML report, and one **Allure** report for API and UI together, with features, severity labels and steps.
+
 Techniques: positive and negative testing, boundary and validation checks, authorisation checks, state-based flows (create then update then delete), end-to-end user journeys, and data sharing between requests with variables.
 
 ## Pipeline (`Jenkinsfile`)
 1. **Install**: `npm ci`
 2. **Lint**: ESLint on the Cypress code
 3. **Tests (in parallel)**: Newman API tests and Cypress UI tests
-4. **Post**: publish JUnit results and the HTML report, archive reports and screenshots, clean the workspace
+4. **Post**: publish JUnit results, the API HTML report and the combined **Allure report**, archive reports and screenshots, clean the workspace
 
 Features: pipeline as code, SCM polling, a `SUITE` parameter (`all`, `api`, `ui`) to run part of the pipeline, a build timeout, build history limits, retries for flaky public sites (UI), and no concurrent builds.
 
@@ -46,6 +48,8 @@ npm install
 npm run test:api     # Newman, report in reports/api/index.html
 npm run test:ui      # Cypress headless, JUnit in reports/ui/
 npm run cy:open      # Cypress interactive mode
+npm run report       # build the Allure report from the last run (reports/allure-report)
+npm run report:open  # open it in the browser
 npm run lint
 ```
 
